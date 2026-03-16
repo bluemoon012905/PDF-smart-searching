@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Smart Search Visualizer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="drop-overlay" class="drop-overlay" aria-hidden="true">
+      <div class="drop-overlay__card">
+        <h2>Drop PDF or TXT anywhere</h2>
+        <p>Release to parse and visualize linked tokens.</p>
+      </div>
+    </div>
+
+    <header class="app-header">
+      <div>
+        <h1>PDF Smart Search Visualizer</h1>
+        <p>Drag and drop a file, then ask a question to see token links.</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel panel--document">
+        <div class="panel__head">
+          <h2>Document Viewer</h2>
+          <div class="panel__head-actions">
+            <span id="doc-meta">No file loaded</span>
+            <label class="file-button">
+              <input id="file-input" type="file" accept=".pdf,.txt,text/plain,application/pdf" />
+              Choose file
+            </label>
+          </div>
+        </div>
+        <div id="document-view" class="document-view">
+          <div class="empty-state">
+            Drop a PDF or TXT file to render tokenized content here.
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel panel--question">
+        <div class="panel__head">
+          <h2>Question Panel</h2>
+          <span>Linked tokens share the same color</span>
+        </div>
+
+        <label class="question-label" for="question-input">Ask a question</label>
+        <textarea
+          id="question-input"
+          placeholder="Example: What does the document say about flight management system setup?"
+          rows="5"
+        ></textarea>
+
+        <div class="token-section">
+          <h3>Question Tokens</h3>
+          <div id="question-tokens" class="token-list"></div>
+        </div>
+
+        <div class="token-section">
+          <h3>Linked Tokens</h3>
+          <div id="linked-summary" class="token-list"></div>
+        </div>
+
+        <div class="token-section">
+          <h3>Top Pages</h3>
+          <div id="page-ranking" class="page-ranking"></div>
+        </div>
+      </aside>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
