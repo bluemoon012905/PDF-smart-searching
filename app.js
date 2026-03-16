@@ -6,7 +6,9 @@ const state = {
   mode: "basic",
   pages: [],
   docTokenCounts: new Map(),
+  queryNorms: [],
   linkedNorms: new Set(),
+  tokenEnabled: new Map(),
   colorByNorm: new Map(),
   activeNorm: null,
   filters: [{ id: 1, enabled: true, text: "" }],
@@ -147,6 +149,7 @@ docView.addEventListener("mouseover", (event) => {
   const token = event.target.closest("[data-norm]");
   if (!token) return;
   if (!state.linkedNorms.has(token.dataset.norm)) return;
+  if (!isNormEnabled(token.dataset.norm)) return;
   setActiveNorm(token.dataset.norm);
 });
 
@@ -163,7 +166,7 @@ docView.addEventListener("click", (event) => {
   if (!token) return;
   const norm = token.dataset.norm;
   if (!state.linkedNorms.has(norm)) return;
-  setActiveNorm(state.activeNorm === norm ? null : norm);
+  toggleNormEnabled(norm);
 });
 
 questionTokens.addEventListener("click", (event) => {
@@ -171,14 +174,14 @@ questionTokens.addEventListener("click", (event) => {
   if (!chip) return;
   const norm = chip.dataset.norm;
   if (!state.linkedNorms.has(norm)) return;
-  setActiveNorm(state.activeNorm === norm ? null : norm);
+  toggleNormEnabled(norm);
 });
 
 linkedSummary.addEventListener("click", (event) => {
   const chip = event.target.closest("[data-norm]");
   if (!chip) return;
   const norm = chip.dataset.norm;
-  setActiveNorm(state.activeNorm === norm ? null : norm);
+  toggleNormEnabled(norm);
 });
 
 pageRanking.addEventListener("click", (event) => {
@@ -239,7 +242,9 @@ function clearState() {
   state.fileType = "";
   state.pages = [];
   state.docTokenCounts = new Map();
+  state.queryNorms = [];
   state.linkedNorms = new Set();
+  state.tokenEnabled = new Map();
   state.colorByNorm = new Map();
   state.activeNorm = null;
 }
@@ -384,15 +389,13 @@ function updateQuestion() {
     seen.add(part.norm);
     uniqueQuestionNorms.push(part.norm);
   }
+  state.queryNorms = uniqueQuestionNorms;
 
   state.linkedNorms = new Set(
     uniqueQuestionNorms.filter((norm) => state.docTokenCounts.has(norm) && !stopWords.has(norm)),
   );
-
-  renderQuestionTokens(uniqueQuestionNorms);
-  renderLinkedSummary();
-  applyLinkStyles();
-  renderPageRanking();
+  syncTokenEnabledState();
+  refreshLinkedUI();
 }
 
 function getActiveQueryTokenParts() {
@@ -427,7 +430,13 @@ function renderQuestionTokens(norms) {
     chip.textContent = norm;
     if (state.linkedNorms.has(norm)) {
       chip.classList.add("token-chip--linked");
-      chip.style.setProperty("--token-color", getColor(norm));
+      if (isNormEnabled(norm)) {
+        chip.style.setProperty("--token-color", getColor(norm));
+        chip.textContent = `\u2611 ${norm}`;
+      } else {
+        chip.classList.add("token-chip--off");
+        chip.textContent = `\u2610 ${norm}`;
+      }
     }
     questionTokens.append(chip);
   }
@@ -451,8 +460,13 @@ function renderLinkedSummary() {
     const chip = document.createElement("span");
     chip.className = "token-chip token-chip--linked";
     chip.dataset.norm = norm;
-    chip.style.setProperty("--token-color", getColor(norm));
-    chip.textContent = `${norm} (${count})`;
+    if (isNormEnabled(norm)) {
+      chip.style.setProperty("--token-color", getColor(norm));
+      chip.textContent = `\u2611 ${norm} (${count})`;
+    } else {
+      chip.classList.add("token-chip--off");
+      chip.textContent = `\u2610 ${norm} (${count})`;
+    }
     linkedSummary.append(chip);
   }
 }
@@ -461,11 +475,15 @@ function applyLinkStyles() {
   const tokens = docView.querySelectorAll(".token[data-norm]");
   for (const token of tokens) {
     const norm = token.dataset.norm;
-    token.classList.remove("token--linked", "token--active");
+    token.classList.remove("token--linked", "token--active", "token--disabled");
     token.style.removeProperty("--token-color");
     if (!state.linkedNorms.has(norm)) continue;
-    token.classList.add("token--linked");
-    token.style.setProperty("--token-color", getColor(norm));
+    if (isNormEnabled(norm)) {
+      token.classList.add("token--linked");
+      token.style.setProperty("--token-color", getColor(norm));
+    } else {
+      token.classList.add("token--disabled");
+    }
   }
   refreshActiveStyles();
 }
@@ -476,7 +494,8 @@ function renderPageRanking() {
     pageRanking.innerHTML = `<span class="token-chip">Load a file first.</span>`;
     return;
   }
-  if (state.linkedNorms.size === 0) {
+  const enabledNorms = getEnabledLinkedNorms();
+  if (enabledNorms.size === 0) {
     pageRanking.innerHTML = `<span class="token-chip">No ranked pages yet.</span>`;
     return;
   }
@@ -485,7 +504,7 @@ function renderPageRanking() {
     .map((page) => {
       let score = 0;
       for (const part of page.parts) {
-        if (part.type === "token" && state.linkedNorms.has(part.norm)) {
+        if (part.type === "token" && enabledNorms.has(part.norm)) {
           score += 1;
         }
       }
@@ -519,6 +538,43 @@ function jumpToPage(pageNum) {
   target.classList.remove("page--focus");
   void target.offsetWidth;
   target.classList.add("page--focus");
+}
+
+function syncTokenEnabledState() {
+  for (const norm of [...state.tokenEnabled.keys()]) {
+    if (!state.linkedNorms.has(norm)) {
+      state.tokenEnabled.delete(norm);
+    }
+  }
+  for (const norm of state.linkedNorms) {
+    if (!state.tokenEnabled.has(norm)) {
+      state.tokenEnabled.set(norm, true);
+    }
+  }
+}
+
+function isNormEnabled(norm) {
+  return state.tokenEnabled.get(norm) !== false;
+}
+
+function getEnabledLinkedNorms() {
+  return new Set([...state.linkedNorms].filter((norm) => isNormEnabled(norm)));
+}
+
+function toggleNormEnabled(norm) {
+  if (!state.linkedNorms.has(norm)) return;
+  state.tokenEnabled.set(norm, !isNormEnabled(norm));
+  if (!isNormEnabled(norm) && state.activeNorm === norm) {
+    state.activeNorm = null;
+  }
+  refreshLinkedUI();
+}
+
+function refreshLinkedUI() {
+  renderQuestionTokens(state.queryNorms);
+  renderLinkedSummary();
+  applyLinkStyles();
+  renderPageRanking();
 }
 
 function syncModeUI() {

@@ -8,6 +8,7 @@ Browser-based PDF/TXT token visualizer with linked query matching.
 - Parse documents fully in-browser (no backend)
 - Show PDF page previews plus extracted tokenized text
 - Color-link matching tokens between document and query
+- Click linked tags to turn matching on/off
 - Rank pages by highest token hit count
 - Click ranked pages to jump to that page in the viewer
 - Show turtle mascot:
@@ -20,7 +21,7 @@ Browser-based PDF/TXT token visualizer with linked query matching.
 
 - Single question textarea
 - Tokenizes question terms
-- Highlights overlaps in the document and ranking
+- Clickable token tags toggle overlap matching on/off
 
 ### Advanced mode
 
@@ -28,6 +29,7 @@ Browser-based PDF/TXT token visualizer with linked query matching.
 - Each filter has a checkbox to include/exclude it
 - Add/remove filters dynamically
 - Uses checked filters as the active query source
+- Linked tag chips can also toggle token inclusion on/off
 
 ## Current Matching Logic
 
@@ -35,7 +37,8 @@ Browser-based PDF/TXT token visualizer with linked query matching.
 - Normalizes tokens to lowercase
 - Filters a stop-word set for matching
 - Links tokens by exact normalized overlap
-- Ranks pages by number of linked token occurrences on each page
+- Uses tag on/off state to control highlighting and ranking
+- Ranks pages by number of enabled linked token occurrences on each page
 
 ## Tech Stack
 
