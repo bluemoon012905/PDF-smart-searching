@@ -56,6 +56,22 @@ body {
   display: none;
 }
 
+.how-btn {
+  cursor: pointer;
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.how-btn:hover {
+  border-color: #b79060;
+  background: #fff8ea;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
@@ -265,6 +281,10 @@ body {
   padding: 0.35rem 0.5rem;
   font: inherit;
   font-size: 0.88rem;
+  resize: none;
+  overflow-y: hidden;
+  min-height: 2rem;
+  line-height: 1.35;
 }
 
 .filter-remove {
@@ -404,6 +424,66 @@ body {
 .drop-overlay__card p {
   margin: 0.35rem 0 0;
   color: var(--muted);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.55);
+}
+
+.modal__card {
+  position: relative;
+  width: min(760px, 92vw);
+  max-height: 82vh;
+  overflow: auto;
+  margin: 8vh auto 0;
+  background: #fffaf2;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1rem 1rem 0.95rem;
+}
+
+.modal__close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.6rem;
+  border: 0;
+  background: transparent;
+  color: #6f5b45;
+  font: inherit;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal__close:hover {
+  color: #3b3024;
+}
+
+.modal__card h2 {
+  margin: 0 2.2rem 0.7rem 0;
+}
+
+.modal__content p {
+  margin: 0.45rem 0;
+}
+
+.modal__content ol {
+  margin: 0.45rem 0;
+  padding-left: 1.2rem;
+}
+
+.modal__content li {
+  margin: 0.25rem 0;
 }
 
 @media (max-width: 980px) {

@@ -19,7 +19,28 @@
         <h1>PDF Smart Search Visualizer</h1>
         <p>Drag and drop a file, then ask a question to see token links.</p>
       </div>
+      <button id="how-it-works-btn" class="how-btn" type="button">How this works</button>
     </header>
+
+    <div id="how-modal" class="modal is-hidden" aria-hidden="true">
+      <div id="how-modal-backdrop" class="modal__backdrop"></div>
+      <section class="modal__card" role="dialog" aria-modal="true" aria-labelledby="how-modal-title">
+        <button id="how-modal-close" class="modal__close" type="button" aria-label="Close help dialog">X</button>
+        <h2 id="how-modal-title">How This Works</h2>
+        <div class="modal__content">
+          <p>This app runs fully in your browser. No backend is required.</p>
+          <ol>
+            <li>Drop a PDF or TXT file anywhere on the screen.</li>
+            <li>The app extracts text and tokenizes it.</li>
+            <li>In Basic mode, type one question. In Advanced mode, create multiple filter boxes and enable the ones you want.</li>
+            <li>Matching tokens between query/filter terms and the document are color-linked.</li>
+            <li>The Top Pages section ranks pages by how many linked token hits they contain.</li>
+            <li>Click a ranked page to jump directly to it in the document panel.</li>
+          </ol>
+          <p>Tip: hover or click linked tokens to highlight that token group across panels.</p>
+        </div>
+      </section>
+    </div>
 
     <main class="layout">
       <section class="panel panel--document">

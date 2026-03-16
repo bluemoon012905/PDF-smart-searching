@@ -48,6 +48,10 @@ const addFilterButton = document.querySelector("#add-filter");
 const filterList = document.querySelector("#filter-list");
 const tokenTitle = document.querySelector("#token-title");
 const fileInput = document.querySelector("#file-input");
+const howButton = document.querySelector("#how-it-works-btn");
+const howModal = document.querySelector("#how-modal");
+const howModalClose = document.querySelector("#how-modal-close");
+const howModalBackdrop = document.querySelector("#how-modal-backdrop");
 
 let dragDepth = 0;
 
@@ -93,6 +97,7 @@ questionInput.addEventListener("input", () => {
 
 window.addEventListener("resize", () => {
   autoSizeQuestionInput();
+  autoSizeAllFilterInputs();
 });
 
 modeToggle.addEventListener("click", () => {
@@ -110,6 +115,7 @@ addFilterButton.addEventListener("click", () => {
 filterList.addEventListener("input", (event) => {
   const input = event.target.closest(".filter-input");
   if (!input) return;
+  autoSizeFilterInput(input);
   const id = Number(input.dataset.filterId);
   const filter = state.filters.find((item) => item.id === id);
   if (!filter) return;
@@ -180,6 +186,25 @@ pageRanking.addEventListener("click", (event) => {
   if (!item) return;
   const pageNum = Number(item.dataset.pageNum);
   jumpToPage(pageNum);
+});
+
+howButton.addEventListener("click", () => {
+  howModal.classList.remove("is-hidden");
+  howModal.setAttribute("aria-hidden", "false");
+});
+
+howModalClose.addEventListener("click", () => {
+  closeHowModal();
+});
+
+howModalBackdrop.addEventListener("click", () => {
+  closeHowModal();
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeHowModal();
+  }
 });
 
 async function loadFile(file) {
@@ -518,13 +543,12 @@ function renderFilterList() {
         <input class="filter-check" data-filter-id="${filter.id}" type="checkbox" ${filter.enabled ? "checked" : ""} />
         Use
       </label>
-      <input
+      <textarea
         class="filter-input"
         data-filter-id="${filter.id}"
-        type="text"
         placeholder="Filter phrase..."
-        value="${escapeHtml(filter.text)}"
-      />
+        rows="1"
+      >${escapeHtml(filter.text)}</textarea>
       <button
         class="filter-remove"
         data-filter-id="${filter.id}"
@@ -536,6 +560,7 @@ function renderFilterList() {
     `;
     filterList.append(row);
   }
+  autoSizeAllFilterInputs();
 }
 
 function escapeHtml(value) {
@@ -549,6 +574,18 @@ function escapeHtml(value) {
 function autoSizeQuestionInput() {
   questionInput.style.height = "auto";
   questionInput.style.height = `${questionInput.scrollHeight}px`;
+}
+
+function autoSizeFilterInput(input) {
+  input.style.height = "auto";
+  input.style.height = `${input.scrollHeight}px`;
+}
+
+function autoSizeAllFilterInputs() {
+  const inputs = filterList.querySelectorAll(".filter-input");
+  for (const input of inputs) {
+    autoSizeFilterInput(input);
+  }
 }
 
 syncModeUI();
@@ -569,4 +606,9 @@ function refreshActiveStyles() {
     if (!activeNorm || node.dataset.norm !== activeNorm) continue;
     node.classList.add("token--active");
   }
+}
+
+function closeHowModal() {
+  howModal.classList.add("is-hidden");
+  howModal.setAttribute("aria-hidden", "true");
 }
