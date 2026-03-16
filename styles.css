@@ -140,6 +140,31 @@ body {
   color: var(--muted);
 }
 
+.empty-state p {
+  margin: 0.55rem 0 0;
+}
+
+.turtle {
+  width: min(180px, 52%);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.turtle--spin {
+  animation: turtleSpin 1.2s linear infinite;
+  transform-origin: center center;
+}
+
+@keyframes turtleSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .panel--question {
   padding-bottom: 0.8rem;
 }
@@ -158,6 +183,97 @@ body {
   resize: vertical;
   min-height: 110px;
   font: inherit;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.mode-toggle {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.mode-toggle:hover {
+  border-color: #bb9f75;
+  background: #fff8ea;
+}
+
+.advanced-mode {
+  margin: 0.85rem 0.95rem 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem;
+  background: #fffdf8;
+}
+
+.advanced-mode__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.55rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.add-filter {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.filter-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.filter-remove {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.25rem 0.4rem;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.filter-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .token-section {

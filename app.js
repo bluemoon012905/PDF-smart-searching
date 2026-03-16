@@ -3,11 +3,14 @@ import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.5.136/build
 const state = {
   fileName: "",
   fileType: "",
+  mode: "basic",
   pages: [],
   docTokenCounts: new Map(),
   linkedNorms: new Set(),
   colorByNorm: new Map(),
   activeNorm: null,
+  filters: [{ id: 1, enabled: true, text: "" }],
+  nextFilterId: 2,
 };
 
 const palette = [
@@ -37,6 +40,13 @@ const questionInput = document.querySelector("#question-input");
 const questionTokens = document.querySelector("#question-tokens");
 const linkedSummary = document.querySelector("#linked-summary");
 const pageRanking = document.querySelector("#page-ranking");
+const modeToggle = document.querySelector("#mode-toggle");
+const modeHint = document.querySelector("#mode-hint");
+const basicMode = document.querySelector("#basic-mode");
+const advancedMode = document.querySelector("#advanced-mode");
+const addFilterButton = document.querySelector("#add-filter");
+const filterList = document.querySelector("#filter-list");
+const tokenTitle = document.querySelector("#token-title");
 const fileInput = document.querySelector("#file-input");
 
 let dragDepth = 0;
@@ -77,6 +87,48 @@ fileInput.addEventListener("change", async (event) => {
 });
 
 questionInput.addEventListener("input", () => {
+  updateQuestion();
+});
+
+modeToggle.addEventListener("click", () => {
+  state.mode = state.mode === "basic" ? "advanced" : "basic";
+  syncModeUI();
+  updateQuestion();
+});
+
+addFilterButton.addEventListener("click", () => {
+  state.filters.push({ id: state.nextFilterId, enabled: true, text: "" });
+  state.nextFilterId += 1;
+  renderFilterList();
+});
+
+filterList.addEventListener("input", (event) => {
+  const input = event.target.closest(".filter-input");
+  if (!input) return;
+  const id = Number(input.dataset.filterId);
+  const filter = state.filters.find((item) => item.id === id);
+  if (!filter) return;
+  filter.text = input.value;
+  updateQuestion();
+});
+
+filterList.addEventListener("change", (event) => {
+  const checkbox = event.target.closest(".filter-check");
+  if (!checkbox) return;
+  const id = Number(checkbox.dataset.filterId);
+  const filter = state.filters.find((item) => item.id === id);
+  if (!filter) return;
+  filter.enabled = checkbox.checked;
+  updateQuestion();
+});
+
+filterList.addEventListener("click", (event) => {
+  const button = event.target.closest(".filter-remove");
+  if (!button) return;
+  const id = Number(button.dataset.filterId);
+  if (state.filters.length === 1) return;
+  state.filters = state.filters.filter((item) => item.id !== id);
+  renderFilterList();
   updateQuestion();
 });
 
@@ -131,6 +183,7 @@ async function loadFile(file) {
   state.fileName = file.name;
   state.fileType = "";
   docMeta.textContent = `Loading ${file.name}...`;
+  renderTurtleState({ spinning: true, message: `Parsing ${file.name}...` });
 
   try {
     if (name.endsWith(".pdf")) {
@@ -148,7 +201,7 @@ async function loadFile(file) {
     docMeta.textContent = `${state.fileName} • ${state.pages.length} page(s) • ${tokenCount} tokens`;
   } catch (error) {
     docMeta.textContent = `${state.fileName} • failed to parse`;
-    docView.innerHTML = `<div class="empty-state">${error.message}</div>`;
+    renderTurtleState({ spinning: false, message: error.message });
   }
 }
 
@@ -232,7 +285,10 @@ function getColor(norm) {
 
 function renderDocument() {
   if (state.pages.length === 0) {
-    docView.innerHTML = `<div class="empty-state">Drop a PDF or TXT file to render tokenized content here.</div>`;
+    renderTurtleState({
+      spinning: false,
+      message: "Drop a PDF or TXT file to render tokenized content here.",
+    });
     return;
   }
 
@@ -277,10 +333,19 @@ function renderDocument() {
   }
 }
 
+function renderTurtleState({ spinning, message }) {
+  const spinClass = spinning ? " turtle--spin" : "";
+  docView.innerHTML = `
+    <div class="empty-state">
+      <img class="turtle${spinClass}" src="turtle.png" alt="Turtle mascot" />
+      <p>${message}</p>
+    </div>
+  `;
+}
+
 function updateQuestion() {
   state.activeNorm = null;
-  const question = questionInput.value.trim();
-  const questionParts = tokenizeText(question, new Map()).filter((part) => part.type === "token");
+  const questionParts = getActiveQueryTokenParts();
 
   const uniqueQuestionNorms = [];
   const seen = new Set();
@@ -300,10 +365,28 @@ function updateQuestion() {
   renderPageRanking();
 }
 
+function getActiveQueryTokenParts() {
+  if (state.mode === "basic") {
+    const question = questionInput.value.trim();
+    return tokenizeText(question, new Map()).filter((part) => part.type === "token");
+  }
+
+  const parts = [];
+  for (const filter of state.filters) {
+    if (!filter.enabled) continue;
+    const tokens = tokenizeText(filter.text.trim(), new Map()).filter((part) => part.type === "token");
+    parts.push(...tokens);
+  }
+  return parts;
+}
+
 function renderQuestionTokens(norms) {
   questionTokens.innerHTML = "";
   if (norms.length === 0) {
-    questionTokens.innerHTML = `<span class="token-chip">Start typing a question.</span>`;
+    const emptyCopy = state.mode === "basic"
+      ? "Start typing a question."
+      : "Enable filters and type filter terms.";
+    questionTokens.innerHTML = `<span class="token-chip">${emptyCopy}</span>`;
     return;
   }
 
@@ -407,6 +490,57 @@ function jumpToPage(pageNum) {
   void target.offsetWidth;
   target.classList.add("page--focus");
 }
+
+function syncModeUI() {
+  const isAdvanced = state.mode === "advanced";
+  basicMode.classList.toggle("is-hidden", isAdvanced);
+  advancedMode.classList.toggle("is-hidden", !isAdvanced);
+  modeHint.textContent = isAdvanced ? "Advanced mode" : "Basic mode";
+  modeToggle.textContent = isAdvanced ? "Basic mode" : "Advanced mode";
+  tokenTitle.textContent = isAdvanced ? "Active Filter Tokens" : "Question Tokens";
+}
+
+function renderFilterList() {
+  filterList.innerHTML = "";
+  for (const filter of state.filters) {
+    const row = document.createElement("div");
+    row.className = "filter-row";
+    row.innerHTML = `
+      <label class="filter-toggle">
+        <input class="filter-check" data-filter-id="${filter.id}" type="checkbox" ${filter.enabled ? "checked" : ""} />
+        Use
+      </label>
+      <input
+        class="filter-input"
+        data-filter-id="${filter.id}"
+        type="text"
+        placeholder="Filter phrase..."
+        value="${escapeHtml(filter.text)}"
+      />
+      <button
+        class="filter-remove"
+        data-filter-id="${filter.id}"
+        type="button"
+        ${state.filters.length === 1 ? "disabled" : ""}
+      >
+        Remove
+      </button>
+    `;
+    filterList.append(row);
+  }
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+syncModeUI();
+renderFilterList();
+updateQuestion();
 
 function setActiveNorm(norm) {
   state.activeNorm = norm;

@@ -35,7 +35,8 @@
         </div>
         <div id="document-view" class="document-view">
           <div class="empty-state">
-            Drop a PDF or TXT file to render tokenized content here.
+            <img class="turtle turtle--idle" src="turtle.png" alt="Turtle mascot" />
+            <p>Drop a PDF or TXT file to render tokenized content here.</p>
           </div>
         </div>
       </section>
@@ -43,18 +44,31 @@
       <aside class="panel panel--question">
         <div class="panel__head">
           <h2>Question Panel</h2>
-          <span>Linked tokens share the same color</span>
+          <div class="panel__head-actions">
+            <span id="mode-hint">Basic mode</span>
+            <button id="mode-toggle" class="mode-toggle" type="button">Advanced mode</button>
+          </div>
         </div>
 
-        <label class="question-label" for="question-input">Ask a question</label>
-        <textarea
-          id="question-input"
-          placeholder="Example: What does the document say about flight management system setup?"
-          rows="5"
-        ></textarea>
+        <div id="basic-mode">
+          <label class="question-label" for="question-input">Ask a question</label>
+          <textarea
+            id="question-input"
+            placeholder="Example: What does the document say about flight management system setup?"
+            rows="5"
+          ></textarea>
+        </div>
+
+        <div id="advanced-mode" class="advanced-mode is-hidden">
+          <div class="advanced-mode__head">
+            <span>Filter Boxes</span>
+            <button id="add-filter" class="add-filter" type="button">+ Add Filter</button>
+          </div>
+          <div id="filter-list" class="filter-list"></div>
+        </div>
 
         <div class="token-section">
-          <h3>Question Tokens</h3>
+          <h3 id="token-title">Question Tokens</h3>
           <div id="question-tokens" class="token-list"></div>
         </div>
 
