@@ -87,7 +87,12 @@ fileInput.addEventListener("change", async (event) => {
 });
 
 questionInput.addEventListener("input", () => {
+  autoSizeQuestionInput();
   updateQuestion();
+});
+
+window.addEventListener("resize", () => {
+  autoSizeQuestionInput();
 });
 
 modeToggle.addEventListener("click", () => {
@@ -498,6 +503,9 @@ function syncModeUI() {
   modeHint.textContent = isAdvanced ? "Advanced mode" : "Basic mode";
   modeToggle.textContent = isAdvanced ? "Basic mode" : "Advanced mode";
   tokenTitle.textContent = isAdvanced ? "Active Filter Tokens" : "Question Tokens";
+  if (!isAdvanced) {
+    autoSizeQuestionInput();
+  }
 }
 
 function renderFilterList() {
@@ -538,8 +546,14 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function autoSizeQuestionInput() {
+  questionInput.style.height = "auto";
+  questionInput.style.height = `${questionInput.scrollHeight}px`;
+}
+
 syncModeUI();
 renderFilterList();
+autoSizeQuestionInput();
 updateQuestion();
 
 function setActiveNorm(norm) {
